@@ -5,15 +5,15 @@ import { useRouter } from "next/router";
 import Wrapper from "../components/Wrapper";
 import InputField from "../components/InputField";
 import { Box, Button } from "@chakra-ui/react";
-import { useRegisterMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
+import { useLoginMutation } from "../generated/graphql";
 
 interface registerProps {}
 
-const register: React.FC<registerProps> = ({}) => {
+const Login: React.FC<{}> = ({}) => {
   const router = useRouter();
-  // URQL hook
-  const [register] = useRegisterMutation();
+  // GQL hook
+  const [, login] = useLoginMutation();
 
   return (
     <Wrapper variant="small">
@@ -24,11 +24,11 @@ const register: React.FC<registerProps> = ({}) => {
         }}
         onSubmit={async (values, { setErrors }) => {
           // value keys are exact to graphql stuff
-          const res = await register(values);
+          const res = await login({ options: values });
           // render errors
-          if (res.data?.register.errors) {
-            setErrors(toErrorMap(res.data.register.errors));
-          } else if (res.data?.register.user) {
+          if (res.data?.login.errors) {
+            setErrors(toErrorMap(res.data.login.errors));
+          } else if (res.data?.login.user) {
             // it worked
             router.push("/");
           }
@@ -55,7 +55,7 @@ const register: React.FC<registerProps> = ({}) => {
               mt={4}
               isLoading={isSubmitting}
             >
-              Register
+              Login
             </Button>
           </Form>
         )}
@@ -64,4 +64,4 @@ const register: React.FC<registerProps> = ({}) => {
   );
 };
 
-export default register;
+export default Login;
