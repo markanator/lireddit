@@ -20,7 +20,6 @@ class FieldError {
 	message: string;
 }
 
-
 @ObjectType() //can return
 class UserResponse {
 	@Field(()=> [FieldError], {nullable: true})
@@ -30,15 +29,32 @@ class UserResponse {
 	user?: User;
 }
 
-
-
 @Resolver()
 export class UserResolver {
-	@Mutation(() => User)
+	@Mutation(() => UserResponse)
 	async register(
 		@Arg('options') options: UsernamePasswordInput,
 		@Ctx() { em }: MyContext
-	) {
+	):Promise<UserResponse> {
+
+		// validation
+		if (options.username.length <=2){
+			return {
+				errors: [{
+					field: "Username",
+					message: "Too short!"
+				}]
+			}
+		}
+		if (options.password.length <=6){
+			return {
+				errors: [{
+					field: "Password",
+					message: "Too short!"
+				}]
+			}
+		}
+
 		// dont want to save the plain text password to the DB
 		const hashedPassword = await argon2.hash(options.password);
 		// save hashed password
@@ -47,8 +63,22 @@ export class UserResolver {
 			password: hashedPassword,
 		});
 		// update DB
-		await em.persistAndFlush(user);
-		return user;
+		try{
+			await em.persistAndFlush(user);
+		}
+		catch (err){
+			if (err.code === "23505" || err.detail.includes("already exists")){
+				// duplicate username error
+				return {
+					errors: [{
+						field: "username",
+						message: "Username is already taken"
+					}]
+				}
+			}
+			console.log("message: ", err.message);
+		}
+		return { user };
 	}
 
 	@Mutation(() => UserResponse) // type-gql ref
