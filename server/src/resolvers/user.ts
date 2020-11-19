@@ -35,11 +35,11 @@ export class UserResolver {
 	async me(
 		@Ctx() { em, req }: MyContext
 	) {
-		// logic
+		// if there is no user ID in the session return null
 		if(!req.session.userId){
 			return null;
 		}
-
+		//
 		const user = await em.findOne(User,{id: req.session.userId});
 
 		return user;
