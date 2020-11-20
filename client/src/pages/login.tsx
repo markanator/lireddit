@@ -7,6 +7,8 @@ import InputField from "../components/InputField";
 import { Box, Button } from "@chakra-ui/react";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useLoginMutation } from "../generated/graphql";
+import { withUrqlClient } from "next-urql";
+import { createUrqlClient } from "../utils/createUrqlClient";
 
 interface registerProps {}
 
@@ -64,4 +66,5 @@ const Login: React.FC<{}> = ({}) => {
   );
 };
 
-export default Login;
+// supports ssr
+export default withUrqlClient(createUrqlClient)(Login);
