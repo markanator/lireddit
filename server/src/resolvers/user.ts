@@ -1,6 +1,5 @@
 import {
   Resolver,
-  InputType,
   Field,
   Mutation,
   Arg,
@@ -14,14 +13,8 @@ import { EntityManager } from "@mikro-orm/postgresql";
 import { MyContext } from "../types";
 import { User } from "../entities/User";
 import { COOKIE_NAME } from "../constants";
-
-@InputType() //typ-gql decorator
-class UsernamePasswordInput {
-  @Field()
-  username: string;
-  @Field()
-  password: string;
-}
+import { UsernamePasswordInput } from "../utils/UsernamePasswordInput";
+import { validateRegister } from "../utils/validateRegister";
 
 @ObjectType() //can return
 class FieldError {
@@ -43,6 +36,13 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  @Mutation(() => Boolean) // decorator
+  async forgotPassword(@Arg("email") email: string, @Ctx() { em }: MyContext) {
+    // const user = await em.findOne(User, {email});
+
+    return true;
+  }
+
   @Query(() => User, { nullable: true })
   async me(@Ctx() { em, req }: MyContext) {
     // if there is no user ID in the session return null
@@ -61,25 +61,9 @@ export class UserResolver {
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
     // validation
-    if (options.username.length <= 2) {
-      return {
-        errors: [
-          {
-            field: "Username",
-            message: "Too short!",
-          },
-        ],
-      };
-    }
-    if (options.password.length <= 6) {
-      return {
-        errors: [
-          {
-            field: "Password",
-            message: "Too short!",
-          },
-        ],
-      };
+    const errors = validateRegister(options);
+    if (errors) {
+      return { errors };
     }
 
     // dont want to save the plain text password to the DB
@@ -92,6 +76,7 @@ export class UserResolver {
         .createQueryBuilder(User)
         .getKnexQuery()
         .insert({
+          email: options.email,
           username: options.username,
           password: hashedPassword,
           created_at: new Date(),
@@ -123,24 +108,32 @@ export class UserResolver {
 
   @Mutation(() => UserResponse) // type-gql ref
   async login(
-    @Arg("options") options: UsernamePasswordInput,
+    @Arg("usernameOrEmail") usernameOrEmail: string,
+    @Arg("password") password: string,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
     // find user
-    const user = await em.findOne(User, { username: options.username });
+    const user = await em.findOne(
+      User,
+      usernameOrEmail.includes("@")
+        ? { email: usernameOrEmail }
+        : { username: usernameOrEmail }
+    );
+
+    // ERROR! no user found
     if (!user) {
       return {
         errors: [
           {
-            field: "username",
-            message: "That username doesn't exist.",
+            field: "usernameOrEmail",
+            message: "That username or email does not exist.",
           },
         ],
       };
     }
 
     // will return a bool
-    const valid = await argon2.verify(user.password, options.password);
+    const valid = await argon2.verify(user.password, password);
     if (!valid) {
       return {
         errors: [

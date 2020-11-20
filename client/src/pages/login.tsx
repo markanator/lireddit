@@ -21,12 +21,12 @@ const Login: React.FC<{}> = ({}) => {
     <Wrapper variant="small">
       <Formik
         initialValues={{
-          username: "",
+          usernameOrEmail: "",
           password: "",
         }}
         onSubmit={async (values, { setErrors }) => {
           // value keys are exact to graphql stuff
-          const res = await login({ options: values });
+          const res = await login(values);
           // render errors
           if (res.data?.login.errors) {
             setErrors(toErrorMap(res.data.login.errors));
@@ -39,9 +39,9 @@ const Login: React.FC<{}> = ({}) => {
         {({ isSubmitting }) => (
           <Form>
             <InputField
-              label="Username"
-              name="username"
-              placeholder="Username"
+              label="Username Or Email"
+              name="usernameOrEmail"
+              placeholder="Username Or Email"
             />
             <Box mt={4}>
               <InputField

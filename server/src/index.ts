@@ -15,12 +15,15 @@ import microConfig from "./mikro-orm.config";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-// import { MyContext } from "./types";
+// import { sendEmail } from "./utils/sendEmail";
+// import { User } from "./entities/User";
 
 const PORT = process.env.PORT || 7777;
 
 const main = async () => {
+  // sendEmail("bob@bob.com", "hello there");
   const orm = await MikroORM.init(microConfig);
+  // await orm.em.nativeDelete(User, {});
   await orm.getMigrator().up();
   // redis stuff
   const RedisStore = connectRedis(session);

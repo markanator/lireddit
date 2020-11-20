@@ -15,18 +15,19 @@ interface registerProps {}
 const register: React.FC<registerProps> = ({}) => {
   const router = useRouter();
   // URQL hook
-  const [register] = useRegisterMutation();
+  const [, register] = useRegisterMutation();
 
   return (
     <Wrapper variant="small">
       <Formik
         initialValues={{
+          email: "",
           username: "",
           password: "",
         }}
         onSubmit={async (values, { setErrors }) => {
           // value keys are exact to graphql stuff
-          const res = await register(values);
+          const res = await register({ options: values });
           // render errors
           if (res.data?.register.errors) {
             setErrors(toErrorMap(res.data.register.errors));
@@ -43,6 +44,14 @@ const register: React.FC<registerProps> = ({}) => {
               name="username"
               placeholder="Username"
             />
+            <Box mt={4}>
+              <InputField
+                label="Email"
+                name="email"
+                placeholder="mark@example.com"
+                type="email"
+              />
+            </Box>
             <Box mt={4}>
               <InputField
                 label="Password"
