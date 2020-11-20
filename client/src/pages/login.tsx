@@ -1,10 +1,11 @@
 import React from "react";
 import { Formik, Form } from "formik";
 import { useRouter } from "next/router";
+import NextLink from "next/link";
 // locals
 import Wrapper from "../components/Wrapper";
 import InputField from "../components/InputField";
-import { Box, Button } from "@chakra-ui/react";
+import { Box, Button, Flex, Link } from "@chakra-ui/react";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useLoginMutation } from "../generated/graphql";
 import { withUrqlClient } from "next-urql";
@@ -51,6 +52,11 @@ const Login: React.FC<{}> = ({}) => {
                 type="password"
               />
             </Box>
+            <Flex mt={4}>
+              <NextLink href="/forgot-password">
+                <Link ml={"auto"}>Forgot Password?</Link>
+              </NextLink>
+            </Flex>
             <Button
               type="submit"
               colorScheme="teal"
@@ -66,5 +72,5 @@ const Login: React.FC<{}> = ({}) => {
   );
 };
 
-// supports ssr
+// adds graphql support + SSR only for SEO
 export default withUrqlClient(createUrqlClient)(Login);

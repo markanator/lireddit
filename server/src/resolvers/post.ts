@@ -1,33 +1,24 @@
-import { Resolver, Query, Ctx, Arg, Int, Mutation } from "type-graphql";
+import { Resolver, Query, Arg, Int, Mutation } from "type-graphql";
 import { Post } from "../entities/Post";
-import { MyContext } from "../types";
 
 @Resolver()
 export class PostResolver {
   // return list of Posts
   @Query(() => [Post])
-  async posts(@Ctx() { em }: MyContext): Promise<Post[]> {
+  async posts(): Promise<Post[]> {
     // await sleep(2000);
-    return em.find(Post, {});
+    return Post.find();
   }
 
   @Query(() => Post, { nullable: true }) // type-gql reference
-  post(
-    @Arg("id", () => Int) id: number,
-    @Ctx() { em }: MyContext
-  ): Promise<Post | null> {
-    return em.findOne(Post, { id });
+  post(@Arg("id", () => Int) id: number): Promise<Post | undefined> {
+    return Post.findOne(id);
   }
 
   @Mutation(() => Post) //type-gql reference
-  async createPost(
-    @Arg("title") title: string,
-    @Ctx() { em }: MyContext
-  ): Promise<Post> {
-    // will return a post
-    const post = em.create(Post, { title });
-    await em.persistAndFlush(post);
-    return post;
+  async createPost(@Arg("title") title: string): Promise<Post> {
+    // 2 sql queries
+    return Post.create({ title }).save();
   }
 
   @Mutation(() => Post, { nullable: true }) // type-gql reference
@@ -35,11 +26,10 @@ export class PostResolver {
     // first parameter
     @Arg("id") id: number,
     // second parameter
-    @Arg("title", () => String, { nullable: true }) title: string,
-    @Ctx() { em }: MyContext
+    @Arg("title", () => String, { nullable: true }) title: string
   ): Promise<Post | null> {
     // 1. fetch the post
-    const post = await em.findOne(Post, { id });
+    const post = await Post.findOne(id);
     if (!post) {
       return null;
     }
@@ -47,19 +37,16 @@ export class PostResolver {
     if (typeof title !== "undefined") {
       post.title = title;
       // update!
-      await em.persistAndFlush(post);
+      await Post.update({ id }, { title });
     }
     // return it, obvi!
     return post;
   }
 
   @Mutation(() => Boolean) // type-gql ref
-  async deletePost(
-    @Arg("id") id: number,
-    @Ctx() { em }: MyContext
-  ): Promise<Boolean> {
+  async deletePost(@Arg("id") id: number): Promise<Boolean> {
     // need to do try catch
-    await em.nativeDelete(Post, { id });
+    await Post.delete(id);
     return true;
   }
 }
