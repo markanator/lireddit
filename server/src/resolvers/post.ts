@@ -36,7 +36,7 @@ export class PostResolver {
   }
 
   @Mutation(() => Post) //type-gql reference
-  @UseMiddleware(isAuth)
+  @UseMiddleware(isAuth) //can be used anywhere
   async createPost(
     @Arg("input") input: PostInput,
     @Ctx() { req }: MyContext

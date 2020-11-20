@@ -36,6 +36,7 @@ const forgotPssword: React.FC<{}> = ({}) => {
                 name="email"
                 placeholder="gabi@example.com"
                 type="email"
+                textarea={false}
               />
               <Button
                 type="submit"

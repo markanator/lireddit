@@ -43,6 +43,7 @@ const register: React.FC<registerProps> = ({}) => {
               label="Username"
               name="username"
               placeholder="Username"
+              textarea={false}
             />
             <Box mt={4}>
               <InputField
@@ -50,6 +51,7 @@ const register: React.FC<registerProps> = ({}) => {
                 name="email"
                 placeholder="mark@example.com"
                 type="email"
+                textarea={false}
               />
             </Box>
             <Box mt={4}>
@@ -58,6 +60,7 @@ const register: React.FC<registerProps> = ({}) => {
                 name="password"
                 placeholder="password"
                 type="password"
+                textarea={false}
               />
             </Box>
             <Button

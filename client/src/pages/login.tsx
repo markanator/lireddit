@@ -11,7 +11,7 @@ import { useLoginMutation } from "../generated/graphql";
 import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 
-interface registerProps {}
+// interface registerProps {}
 
 const Login: React.FC<{}> = ({}) => {
   const router = useRouter();
@@ -43,6 +43,7 @@ const Login: React.FC<{}> = ({}) => {
               label="Username Or Email"
               name="usernameOrEmail"
               placeholder="Username Or Email"
+              textarea={false}
             />
             <Box mt={4}>
               <InputField
@@ -50,6 +51,7 @@ const Login: React.FC<{}> = ({}) => {
                 name="password"
                 placeholder="password"
                 type="password"
+                textarea={false}
               />
             </Box>
             <Flex mt={4}>
