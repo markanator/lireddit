@@ -13,6 +13,7 @@ import { EntityManager } from "@mikro-orm/postgresql";
 // locals
 import { MyContext } from "../types";
 import { User } from "../entities/User";
+import { COOKIE_NAME } from "../constants";
 
 @InputType() //typ-gql decorator
 class UsernamePasswordInput {
@@ -154,5 +155,24 @@ export class UserResolver {
     req.session!.userId = user.id;
 
     return { user };
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Ctx() { req, res }: MyContext) {
+    return new Promise((resolve) =>
+      req.session.destroy((err: any) => {
+        // destroy cookie regardless
+        res.clearCookie(COOKIE_NAME);
+        // check for error
+        if (err) {
+          console.error(err);
+          resolve(false);
+          return;
+        }
+        // all good
+        resolve(true);
+      })
+    );
+    // more
   }
 }
