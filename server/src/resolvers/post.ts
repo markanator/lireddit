@@ -12,6 +12,7 @@ import {
   UseMiddleware,
 } from "type-graphql";
 import { Post } from "../entities/Post";
+import { getConnection } from "typeorm";
 
 @InputType()
 class PostInput {
@@ -25,9 +26,23 @@ class PostInput {
 export class PostResolver {
   // return list of Posts
   @Query(() => [Post])
-  async posts(): Promise<Post[]> {
-    // await sleep(2000);
-    return Post.find();
+  async posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+  ): Promise<Post[]> {
+    const realLimit = Math.min(50, limit);
+
+    const qb = getConnection()
+      .getRepository(Post)
+      .createQueryBuilder("p")
+      .orderBy('"createdAt"', "DESC") // triple quotes because of capital letter
+      .take(realLimit); // use this instead of limit => typeORM
+
+    if (cursor) {
+      qb.where('"createdAt" < :cursor', { cursor: new Date(parseInt(cursor)) });
+    }
+
+    return qb.getMany();
   }
 
   @Query(() => Post, { nullable: true }) // type-gql reference

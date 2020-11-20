@@ -14,6 +14,7 @@ import { User } from "./entities/User";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
+import path from "path";
 
 const PORT = process.env.PORT || 7777;
 
@@ -28,9 +29,11 @@ const main = async () => {
     entities: [User, Post],
     logging: true,
     synchronize: true,
+    migrations: [path.join(__dirname, "./migrations/*")],
   });
 
   // await Post.delete({});
+  conn.runMigrations(); // run migrations
 
   // setup connection
   const app = express();
