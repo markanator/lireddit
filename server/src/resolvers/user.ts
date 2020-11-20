@@ -8,7 +8,8 @@ import {
   Query,
 } from "type-graphql";
 import argon2 from "argon2";
-import { EntityManager } from "@mikro-orm/postgresql";
+import { v4 } from "uuid";
+import { getConnection } from "typeorm";
 // locals
 import { MyContext } from "../types";
 import { User } from "../entities/User";
@@ -16,8 +17,6 @@ import { COOKIE_NAME, FORGOT_PASSWORD_PREFIX } from "../constants";
 import { UsernamePasswordInput } from "../utils/UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
 import { sendEmail } from "../utils/sendEmail";
-import { v4 } from "uuid";
-import { getConnection } from "typeorm";
 
 @ObjectType() //can return
 class FieldError {
@@ -134,7 +133,7 @@ export class UserResolver {
   }
 
   @Query(() => User, { nullable: true })
-  me(@Ctx() { req }: MyContext) {
+  async me(@Ctx() { req }: MyContext) {
     // if there is no user ID in the session return null
     if (!req.session.userId) {
       return null;
@@ -173,7 +172,7 @@ export class UserResolver {
         .execute();
 
       // user = result[0];
-      user = res.raw();
+      user = res.raw[0];
     } catch (err) {
       if (err.code === "23505" || err.detail.includes("already exists")) {
         // duplicate username error

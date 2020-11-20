@@ -17,30 +17,31 @@ import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import { User } from "./entities/User";
 import { Post } from "./entities/Post";
-// import { sendEmail } from "./utils/sendEmail";
-// import { User } from "./entities/User";
 
 const PORT = process.env.PORT || 7777;
 
 const main = async () => {
   // setup ORM
-  const typeConnection = await createConnection({
+  const conn = await createConnection({
     type: "postgres",
-    database: "lireddit2",
+    port: 5433,
     username: "postgres",
-    password: "lorain123",
+    password: "LOrain123",
+    database: "lireddit",
+    entities: [User, Post],
     logging: true,
     synchronize: true,
-    entities: [User, Post],
   });
 
+  // await Post.delete({});
+
   // setup connection
+  const app = express();
 
   // redis stuff
   const RedisStore = connectRedis(session);
   const redis = new Redis();
   // initialize app
-  const app = express();
 
   // cors fix
   app.use(
@@ -86,4 +87,6 @@ const main = async () => {
   });
 };
 
-main();
+main().catch((err) => {
+  console.error(err);
+});
