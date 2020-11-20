@@ -4,7 +4,7 @@ import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
 import "reflect-metadata";
 // redis
-import redis from "redis";
+import Redis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
@@ -21,13 +21,15 @@ import { UserResolver } from "./resolvers/user";
 const PORT = process.env.PORT || 7777;
 
 const main = async () => {
-  // sendEmail("bob@bob.com", "hello there");
+  // setup ORM
   const orm = await MikroORM.init(microConfig);
-  // await orm.em.nativeDelete(User, {});
+
+  // await orm.em.nativeDelete(User, {}); // NUKE USER DB
   await orm.getMigrator().up();
+
   // redis stuff
   const RedisStore = connectRedis(session);
-  const redisClient = redis.createClient();
+  const redis = new Redis();
   // initialize app
   const app = express();
 
@@ -44,7 +46,7 @@ const main = async () => {
     session({
       name: COOKIE_NAME,
       store: new RedisStore({
-        client: redisClient,
+        client: redis,
         disableTouch: true,
       }),
       cookie: {
@@ -65,7 +67,7 @@ const main = async () => {
       validate: false,
     }),
     // destructure access to have req,res
-    context: ({ req, res }) => ({ em: orm.em, req, res }),
+    context: ({ req, res }) => ({ em: orm.em, req, res, redis }),
   });
 
   apolloServer.applyMiddleware({ app, cors: false });
