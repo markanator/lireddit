@@ -1,4 +1,6 @@
 import "reflect-metadata";
+import * as dotenv from "dotenv";
+dotenv.config();
 import { ApolloServer } from "apollo-server-express";
 import connectRedis from "connect-redis";
 import cors from "cors";
@@ -22,15 +24,17 @@ const main = async () => {
   // setup ORM
   const conn = await createConnection({
     type: "postgres",
-    port: 5433,
-    username: "postgres",
-    password: "LOrain123",
-    database: "lireddit",
+    port: parseInt(process.env.DB_PORT as string),
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     entities: [User, Post],
     logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, "./migrations/*")],
   });
+
+  console.log("### Connected!");
 
   // await Post.delete({});
   conn.runMigrations(); // run migrations
@@ -66,7 +70,7 @@ const main = async () => {
         secure: __prod__, //cookie only works in https
       },
       saveUninitialized: false, // create sesh by default regardless of !data
-      secret: "a-9s8d7@9a8&sd79a8s$7dlkj_2h3l$kjhl2k34",
+      secret: process.env.COOKIE_SECRET as string,
       resave: false,
     })
   );
