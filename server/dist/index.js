@@ -45,6 +45,7 @@ const typeorm_1 = require("typeorm");
 const constants_1 = require("./constants");
 const Post_1 = require("./entities/Post");
 const User_1 = require("./entities/User");
+const Upvote_1 = require("./entities/Upvote");
 const hello_1 = require("./resolvers/hello");
 const post_1 = require("./resolvers/post");
 const user_1 = require("./resolvers/user");
@@ -57,13 +58,13 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         username: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        entities: [User_1.User, Post_1.Post],
+        entities: [User_1.User, Post_1.Post, Upvote_1.Upvote],
         logging: true,
         synchronize: true,
         migrations: [path_1.default.join(__dirname, "./migrations/*")],
     });
     console.log("### Connected!");
-    conn.runMigrations();
+    yield conn.runMigrations();
     const app = express_1.default();
     const RedisStore = connect_redis_1.default(express_session_1.default);
     const redis = new ioredis_1.default();
@@ -92,6 +93,11 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             resolvers: [hello_1.HelloResolver, post_1.PostResolver, user_1.UserResolver],
             validate: false,
         }),
+        playground: {
+            settings: {
+                "request.credentials": "include",
+            },
+        },
         context: ({ req, res }) => ({ req, res, redis }),
     });
     apolloServer.applyMiddleware({ app, cors: false });

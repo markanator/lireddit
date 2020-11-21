@@ -52,15 +52,21 @@ export class PostResolver {
     const realLimit = Math.min(50, limit);
     const realLimitPlusOne = realLimit + 1;
 
+    // for SQL Query below
     const sqlReplacement: any[] = [realLimitPlusOne];
-
     if (cursor) {
       sqlReplacement.push(new Date(parseInt(cursor)));
     }
-
+    // write a join => big query that returns joined data
     const posts = await getConnection().query(
       `
-      select p.*, u.username from post p
+      select p.*,
+      json_build_object(
+        'id', u.id,
+        'username', u.username,
+        'email', u.email
+        ) author
+      from post p
       inner join public.user u on u.id = p."authorId"
       ${cursor ? `where p."createdAt" < $2` : ""}
       order by p."createdAt" DESC
@@ -68,20 +74,6 @@ export class PostResolver {
       `,
       sqlReplacement
     );
-
-    // const qb = getConnection()
-    //   .getRepository(Post)
-    //   .createQueryBuilder("p") // alias for post table
-    //   .innerJoinAndSelect("p.author", "u", 'u.id = p."authorId"')
-    //   .orderBy('p."createdAt"', "DESC") // triple quotes because of capital letter
-    //   .take(realLimitPlusOne); // use this instead of limit => typeORM
-    // if (cursor) {
-    //   qb.where('p."createdAt" < :cursor', {
-    //     cursor: new Date(parseInt(cursor)),
-    //   });
-    // }
-
-    // const posts = await qb.getMany();
 
     return {
       posts: posts.slice(0, realLimit), // only give users proper amount
@@ -133,6 +125,36 @@ export class PostResolver {
   async deletePost(@Arg("id") id: number): Promise<Boolean> {
     // need to do try catch
     await Post.delete(id);
+    return true;
+  }
+
+  @Mutation(() => Boolean)
+  // @UseMiddleware(isAuth)
+  async vote(
+    @Arg("postId", () => Int) postId: number,
+    @Arg("value", () => Int) value: number,
+    @Ctx() { req }: MyContext
+  ) {
+    const isUpvote = value !== -1;
+    // prevent spamming
+    const realValue = isUpvote ? 1 : -1;
+    const { userId } = req.session;
+
+    await getConnection().query(
+      `
+      START TRANSACTION;
+
+      insert into upvote ("userId", "postId", "value")
+      values (${userId}, ${postId}, ${realValue});
+
+      update post
+      set points = points + ${realValue}
+      where id = ${postId};
+
+      COMMIT;
+    `
+    );
+
     return true;
   }
 }

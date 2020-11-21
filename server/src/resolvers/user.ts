@@ -6,6 +6,8 @@ import {
   Ctx,
   ObjectType,
   Query,
+  FieldResolver,
+  Root,
 } from "type-graphql";
 import argon2 from "argon2";
 import { v4 } from "uuid";
@@ -36,8 +38,19 @@ class UserResponse {
   user?: User;
 }
 
-@Resolver()
+@Resolver(User)
 export class UserResolver {
+  // lets hide emails from being public
+  // @FieldResolver(() => String)
+  // email(@Root() user: User, @Ctx() { req }: MyContext) {
+  //   // this is the current user and its ok to show them their own email
+  //   if (req.session.userId === user.id) {
+  //     return user.email;
+  //   }
+  //   // current user wants to see someone elses email
+  //   return "";
+  // }
+
   // enter all mutations and queries here
   @Mutation(() => UserResponse)
   async changePassword(
@@ -195,47 +208,44 @@ export class UserResolver {
     return { user };
   }
 
-  @Mutation(() => UserResponse) // type-gql ref
+  @Mutation(() => UserResponse)
   async login(
     @Arg("usernameOrEmail") usernameOrEmail: string,
     @Arg("password") password: string,
     @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
-    // find user
     const user = await User.findOne(
       usernameOrEmail.includes("@")
         ? { where: { email: usernameOrEmail } }
         : { where: { username: usernameOrEmail } }
     );
-
-    // ERROR! no user found
     if (!user) {
       return {
         errors: [
           {
             field: "usernameOrEmail",
-            message: "That username or email does not exist.",
+            message: "that username doesn't exist",
           },
         ],
       };
     }
-
-    // will return a bool
     const valid = await argon2.verify(user.password, password);
     if (!valid) {
       return {
         errors: [
           {
             field: "password",
-            message: "Incorrect Password.",
+            message: "incorrect password",
           },
         ],
       };
     }
 
-    req.session!.userId = user.id;
+    req.session.userId = user.id;
 
-    return { user };
+    return {
+      user,
+    };
   }
 
   @Mutation(() => Boolean)

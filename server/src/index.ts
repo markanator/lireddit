@@ -13,6 +13,7 @@ import { createConnection } from "typeorm";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { Post } from "./entities/Post";
 import { User } from "./entities/User";
+import { Upvote } from "./entities/Upvote";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
@@ -22,13 +23,14 @@ const PORT = process.env.PORT || 7777;
 
 const main = async () => {
   // setup ORM
+  // setup connection
   const conn = await createConnection({
     type: "postgres",
     port: parseInt(process.env.DB_PORT as string),
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    entities: [User, Post],
+    entities: [User, Post, Upvote],
     logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, "./migrations/*")],
@@ -36,16 +38,14 @@ const main = async () => {
 
   console.log("### Connected!");
 
-  // await Post.delete({});
-  conn.runMigrations(); // run migrations
+  await conn.runMigrations(); // run migrations
 
-  // setup connection
+  // initialize app
   const app = express();
 
   // redis stuff
   const RedisStore = connectRedis(session);
   const redis = new Redis();
-  // initialize app
 
   // cors fix
   app.use(
@@ -80,6 +80,11 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
+    playground: {
+      settings: {
+        "request.credentials": "include",
+      },
+    },
     // destructure access to have req,res
     context: ({ req, res }) => ({ req, res, redis }),
   });

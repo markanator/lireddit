@@ -176,7 +176,7 @@ let UserResolver = class UserResolver {
                     errors: [
                         {
                             field: "usernameOrEmail",
-                            message: "That username or email does not exist.",
+                            message: "that username doesn't exist",
                         },
                     ],
                 };
@@ -187,13 +187,15 @@ let UserResolver = class UserResolver {
                     errors: [
                         {
                             field: "password",
-                            message: "Incorrect Password.",
+                            message: "incorrect password",
                         },
                     ],
                 };
             }
             req.session.userId = user.id;
-            return { user };
+            return {
+                user,
+            };
         });
     }
     logout({ req, res }) {
@@ -257,7 +259,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UserResolver.prototype, "logout", null);
 UserResolver = __decorate([
-    type_graphql_1.Resolver()
+    type_graphql_1.Resolver(User_1.User)
 ], UserResolver);
 exports.UserResolver = UserResolver;
 //# sourceMappingURL=user.js.map

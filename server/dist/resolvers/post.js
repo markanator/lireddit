@@ -65,7 +65,13 @@ let PostResolver = class PostResolver {
                 sqlReplacement.push(new Date(parseInt(cursor)));
             }
             const posts = yield typeorm_1.getConnection().query(`
-      select p.*, u.username from post p
+      select p.*,
+      json_build_object(
+        'id', u.id,
+        'username', u.username,
+        'email', u.email
+        ) author
+      from post p
       inner join public.user u on u.id = p."authorId"
       ${cursor ? `where p."createdAt" < $2` : ""}
       order by p."createdAt" DESC
@@ -101,6 +107,26 @@ let PostResolver = class PostResolver {
     deletePost(id) {
         return __awaiter(this, void 0, void 0, function* () {
             yield Post_1.Post.delete(id);
+            return true;
+        });
+    }
+    vote(postId, value, { req }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const isUpvote = value !== -1;
+            const realValue = isUpvote ? 1 : -1;
+            const { userId } = req.session;
+            yield typeorm_1.getConnection().query(`
+      START TRANSACTION;
+
+      insert into upvote ("userId", "postId", "value")
+      values (${userId}, ${postId}, ${realValue});
+
+      update post
+      set points = points + ${realValue}
+      where id = ${postId};
+
+      COMMIT;
+    `);
             return true;
         });
     }
@@ -151,6 +177,15 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "deletePost", null);
+__decorate([
+    type_graphql_1.Mutation(() => Boolean),
+    __param(0, type_graphql_1.Arg("postId", () => type_graphql_1.Int)),
+    __param(1, type_graphql_1.Arg("value", () => type_graphql_1.Int)),
+    __param(2, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, Object]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "vote", null);
 PostResolver = __decorate([
     type_graphql_1.Resolver(Post_1.Post)
 ], PostResolver);
