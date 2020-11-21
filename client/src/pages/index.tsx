@@ -17,7 +17,7 @@ import { createUrqlClient } from "../utils/createUrqlClient";
 
 const Index = () => {
   const [variables, setVariables] = useState({
-    limit: 10,
+    limit: 15,
     cursor: null as null | string,
   });
   const [{ data, fetching }] = usePostsQuery({ variables });
@@ -42,7 +42,10 @@ const Index = () => {
         <Stack spacing={8}>
           {data!.posts.posts.map((post) => (
             <Box p={5} shadow="md" borderWidth="1px" key={post.id}>
-              <Heading fontSize="xl">{post.title}</Heading>
+              <>
+                <Heading fontSize="xl">{post.title}</Heading>{" "}
+                <Text>{post.author.username}</Text>
+              </>
               <Text mt={4}>{post.textSnippet}</Text>
             </Box>
           ))}

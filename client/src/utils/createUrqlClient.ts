@@ -92,7 +92,17 @@ export const createUrqlClient = (ssrExchange: any) => ({
       },
       updates: {
         Mutation: {
-          logout: (_result, _, cache, __) => {
+          createPost: (_, __, cache, ____) => {
+            const allFields = cache.inspectFields("Query"); // returns an array of queries
+            const fieldInfos = allFields.filter(
+              (info) => info.fieldName === "posts"
+            ); // filter what we want
+
+            fieldInfos.forEach((fi) => {
+              cache.invalidate("Query", "posts", fi.arguments || {});
+            });
+          },
+          logout: (_result, __, cache, ____) => {
             betterUpdateQuery<LogoutMutation, MeQuery>(
               cache,
               { query: MeDocument },
