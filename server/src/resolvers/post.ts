@@ -1,18 +1,21 @@
-import { isAuth } from "../middleware/isAuth";
-import { MyContext } from "../types";
 import {
-  Resolver,
-  Query,
   Arg,
+  Ctx,
+  Field,
+  FieldResolver,
+  InputType,
   Int,
   Mutation,
-  InputType,
-  Field,
-  Ctx,
+  ObjectType,
+  Query,
+  Resolver,
+  Root,
   UseMiddleware,
 } from "type-graphql";
-import { Post } from "../entities/Post";
 import { getConnection } from "typeorm";
+import { Post } from "../entities/Post";
+import { isAuth } from "../middleware/isAuth";
+import { MyContext } from "../types";
 
 @InputType()
 class PostInput {
@@ -22,27 +25,68 @@ class PostInput {
   text: string;
 }
 
-@Resolver()
+@ObjectType()
+class PaginatedPosts {
+  @Field(() => [Post]) //gql type
+  posts: Post[];
+
+  @Field() // gql type
+  hasMore: Boolean;
+}
+
+@Resolver(Post) // could have been added to Entity
 export class PostResolver {
+  // get text snippet
+  @FieldResolver(() => String)
+  textSnippet(@Root() root: Post) {
+    return root.text.slice(0, 50);
+  }
+
   // return list of Posts
-  @Query(() => [Post])
+  @Query(() => PaginatedPosts) // gql type
   async posts(
     @Arg("limit", () => Int) limit: number,
     @Arg("cursor", () => String, { nullable: true }) cursor: string | null
-  ): Promise<Post[]> {
+  ): Promise<PaginatedPosts> {
+    // TS type here
     const realLimit = Math.min(50, limit);
+    const realLimitPlusOne = realLimit + 1;
 
-    const qb = getConnection()
-      .getRepository(Post)
-      .createQueryBuilder("p")
-      .orderBy('"createdAt"', "DESC") // triple quotes because of capital letter
-      .take(realLimit); // use this instead of limit => typeORM
+    const sqlReplacement: any[] = [realLimitPlusOne];
 
     if (cursor) {
-      qb.where('"createdAt" < :cursor', { cursor: new Date(parseInt(cursor)) });
+      sqlReplacement.push(new Date(parseInt(cursor)));
     }
 
-    return qb.getMany();
+    const posts = await getConnection().query(
+      `
+      select p.*, u.username from post p
+      inner join public.user u on u.id = p."authorId"
+      ${cursor ? `where p."createdAt" < $2` : ""}
+      order by p."createdAt" DESC
+      limit $1
+      `,
+      sqlReplacement
+    );
+
+    // const qb = getConnection()
+    //   .getRepository(Post)
+    //   .createQueryBuilder("p") // alias for post table
+    //   .innerJoinAndSelect("p.author", "u", 'u.id = p."authorId"')
+    //   .orderBy('p."createdAt"', "DESC") // triple quotes because of capital letter
+    //   .take(realLimitPlusOne); // use this instead of limit => typeORM
+    // if (cursor) {
+    //   qb.where('p."createdAt" < :cursor', {
+    //     cursor: new Date(parseInt(cursor)),
+    //   });
+    // }
+
+    // const posts = await qb.getMany();
+
+    return {
+      posts: posts.slice(0, realLimit), // only give users proper amount
+      hasMore: posts.length === realLimitPlusOne, // if its less than above return false => no more content
+    };
   }
 
   @Query(() => Post, { nullable: true }) // type-gql reference

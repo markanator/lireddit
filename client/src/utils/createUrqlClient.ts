@@ -1,4 +1,9 @@
-import { dedupExchange, Exchange, fetchExchange } from "urql";
+import {
+  dedupExchange,
+  Exchange,
+  fetchExchange,
+  stringifyVariables,
+} from "urql";
 import {
   LogoutMutation,
   MeQuery,
@@ -6,7 +11,7 @@ import {
   LoginMutation,
   RegisterMutation,
 } from "../generated/graphql";
-import { cacheExchange } from "@urql/exchange-graphcache";
+import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
 import { pipe, tap } from "wonka";
 // locals
 import { betterUpdateQuery } from "./betterUpdateQuery";
@@ -23,6 +28,51 @@ const errorExchange: Exchange = ({ forward }) => (ops$) => {
   );
 };
 
+const cursorPagination = (): Resolver => {
+  return (_, fieldArgs, cache, info) => {
+    const { parentKey: entityKey, fieldName } = info;
+    const allFields = cache.inspectFields(entityKey); // returns an array of queries
+    const fieldInfos = allFields.filter((info) => info.fieldName === fieldName); // filter what we dont want
+    const size = fieldInfos.length;
+    if (size === 0) {
+      return undefined;
+    }
+
+    const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+    const isInCache = cache.resolve(
+      cache.resolveFieldByKey(entityKey, fieldKey) as string,
+      "posts"
+    ); // will return an array of posts:id
+
+    // if posts are not in cache setPartials ✔
+    info.partial = !isInCache; // will return bool
+
+    let results: string[] = [];
+    let hasMore: boolean = true;
+    // combining fresh posts with cache
+    fieldInfos.forEach((info) => {
+      // will iterate through and read data from cache
+      const key = cache.resolveFieldByKey(entityKey, info.fieldKey) as string; // cache key
+      const data = cache.resolve(key, "posts") as string[]; // cache array data
+      const _hasMore = cache.resolve(key, "hasMore"); // cached bool for more content
+
+      if (!_hasMore) {
+        // no more? set to FALSE!
+        hasMore = _hasMore as boolean;
+      }
+
+      // pagination from first...n page => one long cached content array
+      results.push(...data);
+    });
+
+    return {
+      __typename: "PaginatedPosts", // manual else other
+      hasMore,
+      posts: results,
+    };
+  };
+};
+
 export const createUrqlClient = (ssrExchange: any) => ({
   url: "http://localhost:7777/graphql",
   fetchOptions: {
@@ -32,6 +82,14 @@ export const createUrqlClient = (ssrExchange: any) => ({
   exchanges: [
     dedupExchange,
     cacheExchange({
+      keys: {
+        PaginatedPosts: () => null,
+      },
+      resolvers: {
+        Query: {
+          posts: cursorPagination(),
+        },
+      },
       updates: {
         Mutation: {
           logout: (_result, _, cache, __) => {

@@ -96,7 +96,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     });
     apolloServer.applyMiddleware({ app, cors: false });
     app.listen(PORT, () => {
-        console.log(`### server started on http://localhost:${PORT}`);
+        console.log(`### server started on http://localhost:${PORT}/graphql`);
     });
 });
 main().catch((err) => {
