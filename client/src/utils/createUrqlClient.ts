@@ -10,9 +10,12 @@ import {
   MeDocument,
   LoginMutation,
   RegisterMutation,
+  VoteMutationVariables,
 } from "../generated/graphql";
 import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
 import { pipe, tap } from "wonka";
+import gql from "graphql-tag";
+
 // locals
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import Router from "next/router";
@@ -92,6 +95,40 @@ export const createUrqlClient = (ssrExchange: any) => ({
       },
       updates: {
         Mutation: {
+          vote: (_, args, cache, __) => {
+            const { postId, value } = args as VoteMutationVariables;
+            const data = cache.readFragment(
+              gql`
+                fragment _ on Post {
+                  id
+                  points
+                  voteStatus
+                }
+              `,
+              { id: postId } as any
+            );
+
+            // if alll good
+            if (data) {
+              if (data.voteStatus == args.value) {
+                // 1 === 1 + upvote
+                // do nothing
+                return;
+              }
+              const newPoints =
+                data.points + (!data.voteStatus ? 1 : 2) * value;
+
+              cache.writeFragment(
+                gql`
+                  fragment __ on Post {
+                    points
+                    voteStatus
+                  }
+                `,
+                { id: postId, points: newPoints, voteStatus: value } as any
+              );
+            }
+          },
           createPost: (_, __, cache, ____) => {
             // this function will add the post just created to an array
             // iterate through the cache and invalidate each item
