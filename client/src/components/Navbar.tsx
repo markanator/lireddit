@@ -1,6 +1,14 @@
-import { Box, Button, Flex, Link, useColorMode } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Link,
+  useColorMode,
+} from "@chakra-ui/react";
 import React from "react";
 import NextLink from "next/link";
+// locals
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
 import { DarkModeSwitch } from "./DarkModeSwitch";
@@ -40,7 +48,12 @@ const Navbar: React.FC<NavbarProps> = ({}) => {
     // user is logged in
   } else {
     body = (
-      <Flex>
+      <Flex align="center">
+        <NextLink href="/create-post">
+          <Button as={Link} mr={2}>
+            Create a Post
+          </Button>
+        </NextLink>
         <Box mr={2}>{data.me.username}</Box>
         <Button
           onClick={() => {
@@ -48,6 +61,7 @@ const Navbar: React.FC<NavbarProps> = ({}) => {
           }}
           isLoading={logoutFetching}
           variant="link"
+          mr={4}
         >
           Logout
         </Button>
@@ -57,8 +71,21 @@ const Navbar: React.FC<NavbarProps> = ({}) => {
   }
 
   return (
-    <Flex position="sticky" zIndex={1} bg={bgColor[colorMode]} p={4}>
-      <Box ml={"auto"}>{body}</Box>
+    <Flex
+      position="sticky"
+      zIndex={1}
+      bg={bgColor[colorMode]}
+      p={4}
+      align="center"
+    >
+      <Flex maxW={800} align="center" flex={1} m="auto">
+        <NextLink href="/">
+          <Link>
+            <Heading>Light-Reddit</Heading>
+          </Link>
+        </NextLink>
+        <Box ml={"auto"}>{body}</Box>
+      </Flex>
     </Flex>
   );
 };

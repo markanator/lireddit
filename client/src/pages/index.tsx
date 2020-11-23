@@ -30,10 +30,7 @@ const Index = () => {
   return (
     <Layout>
       <Flex>
-        <Heading>Light-Reddit</Heading>
-        <NextLink href="/create-post">
-          <Link ml="auto">CreatePost</Link>
-        </NextLink>
+        <Heading>Fresh Posts</Heading>
       </Flex>
       <br />
       {!data && fetching ? (
@@ -45,7 +42,11 @@ const Index = () => {
               {/* imported component */}
               <UpvoteSection post={post} />
               <Box>
-                <Heading fontSize="xl">{post.title}</Heading>
+                <NextLink href={`/post/${post.id}`}>
+                  <Link>
+                    <Heading fontSize="xl">{post.title}</Heading>
+                  </Link>
+                </NextLink>
                 <Text>{post.author.username}</Text>
                 <Text mt={4}>{post.textSnippet}</Text>
               </Box>

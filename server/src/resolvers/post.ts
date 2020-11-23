@@ -98,7 +98,7 @@ export class PostResolver {
 
   @Query(() => Post, { nullable: true }) // type-gql reference
   post(@Arg("id", () => Int) id: number): Promise<Post | undefined> {
-    return Post.findOne(id);
+    return Post.findOne(id, { relations: ["author"] });
   }
 
   @Mutation(() => Post) //type-gql reference
