@@ -19,6 +19,8 @@ export class Upvote extends BaseEntity {
   postId: number;
 
   // owner column
-  @ManyToOne(() => Post, (post) => post.upvotes) //relationships
+  @ManyToOne(() => Post, (post) => post.upvotes, {
+    onDelete: "CASCADE",
+  }) //relationships
   post: Post;
 }

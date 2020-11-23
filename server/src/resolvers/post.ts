@@ -14,6 +14,7 @@ import {
   UseMiddleware,
 } from "type-graphql";
 import { getConnection } from "typeorm";
+//
 import { Post } from "../entities/Post";
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "../types";
@@ -115,29 +116,47 @@ export class PostResolver {
   }
 
   @Mutation(() => Post, { nullable: true }) // type-gql reference
+  @UseMiddleware(isAuth)
   async updatePost(
-    @Arg("id") id: number,
-    @Arg("title", () => String, { nullable: true }) title: string
+    @Arg("id", () => Int) id: number,
+    @Arg("title") title: string,
+    @Arg("text") text: string,
+    @Ctx() { req }: MyContext
   ): Promise<Post | null> {
     // 1. fetch the post
-    const post = await Post.findOne(id);
-    if (!post) {
-      return null;
-    }
-    // 2. they gave us a title that is not blank
-    if (typeof title !== "undefined") {
-      post.title = title;
-      // update!
-      await Post.update({ id }, { title });
-    }
-    // return it, obvi!
-    return post;
+    const res = await getConnection()
+      .createQueryBuilder()
+      .update(Post)
+      .set({ title, text })
+      .where("id = :id and authorId = :authorId", {
+        id,
+        authorId: req.session.userId,
+      })
+      .returning("*")
+      .execute();
+
+    return res.raw[0];
   }
 
   @Mutation(() => Boolean) // type-gql ref
-  async deletePost(@Arg("id") id: number): Promise<Boolean> {
-    // need to do try catch
-    await Post.delete(id);
+  @UseMiddleware(isAuth) // must be signed in
+  async deletePost(
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<Boolean> {
+    //#region NOT CASCADE WAY
+    // need permission to delete
+    // const post = await Post.findOne(id);
+    // if (!post) {
+    //   return false;
+    // }
+    // //
+    // if (post.authorId !== req.session.userId) {
+    //   throw new Error("Not Authorized!");
+    // }
+    // await Upvote.delete({ postId: id });
+    //#endregion
+    await Post.delete({ id, authorId: parseInt(req.session.id) });
     return true;
   }
 
