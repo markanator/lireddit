@@ -93,6 +93,9 @@ export const createUrqlClient = (ssrExchange: any) => ({
       updates: {
         Mutation: {
           createPost: (_, __, cache, ____) => {
+            // this function will add the post just created to an array
+            // iterate through the cache and invalidate each item
+            // which will cause a fetch
             const allFields = cache.inspectFields("Query"); // returns an array of queries
             const fieldInfos = allFields.filter(
               (info) => info.fieldName === "posts"

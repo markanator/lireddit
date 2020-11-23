@@ -14,6 +14,7 @@ import {
 // locals
 import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
+import UpvoteSection from "../components/UpvoteSection";
 
 const Index = () => {
   const [variables, setVariables] = useState({
@@ -34,20 +35,21 @@ const Index = () => {
           <Link ml="auto">CreatePost</Link>
         </NextLink>
       </Flex>
-      {/* <div>Hello world!</div> */}
       <br />
       {!data && fetching ? (
         <div className="">Loading...</div>
       ) : (
         <Stack spacing={8}>
           {data!.posts.posts.map((post) => (
-            <Box p={5} shadow="md" borderWidth="1px" key={post.id}>
-              <>
-                <Heading fontSize="xl">{post.title}</Heading>{" "}
+            <Flex p={5} shadow="md" borderWidth="1px" key={post.id}>
+              {/* imported component */}
+              <UpvoteSection post={post} />
+              <Box>
+                <Heading fontSize="xl">{post.title}</Heading>
                 <Text>{post.author.username}</Text>
-              </>
-              <Text mt={4}>{post.textSnippet}</Text>
-            </Box>
+                <Text mt={4}>{post.textSnippet}</Text>
+              </Box>
+            </Flex>
           ))}
         </Stack>
       )}
