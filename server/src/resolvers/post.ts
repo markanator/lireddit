@@ -55,9 +55,16 @@ export class PostResolver {
     const realLimitPlusOne = realLimit + 1;
 
     // for SQL Query below
-    const sqlReplacement: any[] = [realLimitPlusOne, req.session.userId];
+    const sqlReplacement: any[] = [realLimitPlusOne];
+
+    if (req.session.userId) {
+      sqlReplacement.push(req.session.userId);
+    }
+
+    let cursorIndex = 3;
     if (cursor) {
       sqlReplacement.push(new Date(parseInt(cursor)));
+      cursorIndex = sqlReplacement.length;
     }
     // write a join => big query that returns joined data
     const posts = await getConnection().query(
@@ -76,7 +83,7 @@ export class PostResolver {
 
       from post p
       inner join public.user u on u.id = p."authorId"
-      ${cursor ? `where p."createdAt" < $3` : ""}
+      ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
       order by p."createdAt" DESC
       limit $1
       `,
@@ -109,9 +116,7 @@ export class PostResolver {
 
   @Mutation(() => Post, { nullable: true }) // type-gql reference
   async updatePost(
-    // first parameter
     @Arg("id") id: number,
-    // second parameter
     @Arg("title", () => String, { nullable: true }) title: string
   ): Promise<Post | null> {
     // 1. fetch the post
