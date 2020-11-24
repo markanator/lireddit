@@ -36,20 +36,18 @@ const PORT = parseInt(process.env.PORT) || 7777;
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const conn = yield typeorm_1.createConnection({
         type: "postgres",
-        port: parseInt(process.env.DB_PORT),
-        url: process.env.DB_URI,
+        url: process.env.DATABASE_URL,
         entities: [User_1.User, Post_1.Post, Upvote_1.Upvote],
         logging: true,
         migrations: [path_1.default.join(__dirname, "./migrations/*")],
     });
-    console.log("### Connected!");
     yield conn.runMigrations();
     const app = express_1.default();
     const RedisStore = connect_redis_1.default(express_session_1.default);
     const redis = new ioredis_1.default(process.env.REDIS_URL);
     app.set("proxy", 1);
     app.use(cors_1.default({
-        origin: process.env.FRONT_END_URL,
+        origin: process.env.CORS_ORIGIN,
         credentials: true,
     }));
     app.use(express_session_1.default({
@@ -66,7 +64,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             domain: constants_1.__prod__ ? ".codeponder.com" : undefined,
         },
         saveUninitialized: false,
-        secret: process.env.COOKIE_SECRET,
+        secret: process.env.SESSION_SECRET,
         resave: false,
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({

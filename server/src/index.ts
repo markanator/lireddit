@@ -29,8 +29,7 @@ const main = async () => {
   // setup connection
   const conn = await createConnection({
     type: "postgres",
-    port: parseInt(process.env.DB_PORT as string),
-    url: process.env.DB_URI,
+    url: process.env.DATABASE_URL,
     entities: [User, Post, Upvote],
     logging: true,
     // synchronize: true, // don't run on production
@@ -51,7 +50,7 @@ const main = async () => {
   // cors fix
   app.use(
     cors({
-      origin: process.env.FRONT_END_URL,
+      origin: process.env.CORS_ORIGIN,
       credentials: true,
     })
   );
@@ -69,10 +68,10 @@ const main = async () => {
         httpOnly: true, // non secure for dev
         sameSite: "lax", // csrf protections
         secure: __prod__, //cookie only works in https
-        domain: __prod__ ? ".codeponder.com" : undefined, // don't need?
+        // domain: __prod__ ? ".codeponder.com" : undefined, // don't need?
       },
       saveUninitialized: false, // create sesh by default regardless of !data
-      secret: process.env.COOKIE_SECRET,
+      secret: process.env.SESSION_SECRET,
       resave: false,
     })
   );
