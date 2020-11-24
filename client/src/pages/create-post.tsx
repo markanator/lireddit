@@ -29,6 +29,7 @@ const createPost: React.FC<{}> = ({}) => {
           if (!error) {
             router.push("/");
           }
+          console.log({ error });
         }}
       >
         {({ isSubmitting }) => (
