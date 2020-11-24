@@ -1,27 +1,16 @@
 import { withUrqlClient } from "next-urql";
-import { useRouter } from "next/router";
+// import { useRouter } from "next/router";
 import React from "react";
 import { Box, Heading, Text } from "@chakra-ui/react";
 // locals
 import { createUrqlClient } from "../../utils/createUrqlClient";
-import { usePostDetailsQuery } from "../../generated/graphql";
+// import { usePostDetailsQuery } from "../../generated/graphql";
 import Layout from "../../components/Layout";
-
-//interface PostDetailsProps {
-//
-//}
+import { useGetPostFromUrl } from "../../hooks/useGetPostFromUrl";
+import EditDeletePostsButton from "../../components/EditDeletePostsButton";
 
 const PostDetails: React.FC<{}> = ({}) => {
-  const router = useRouter();
-  const postId =
-    typeof router.query.id === "string" ? parseInt(router.query.id) : -1;
-  const [{ data, error, fetching }] = usePostDetailsQuery({
-    pause: postId === -1, // stop query if it is neg one
-    variables: {
-      // all good
-      id: postId,
-    },
-  });
+  const [{ data, error, fetching }] = useGetPostFromUrl();
 
   if (fetching) {
     return (
@@ -51,7 +40,13 @@ const PostDetails: React.FC<{}> = ({}) => {
         <Heading as="h1" size="xl" mb={4}>
           {data?.post?.title}
         </Heading>
-        <Text>{data?.post?.text}</Text>
+        <Box mb={4}>
+          <Text>{data?.post?.text}</Text>
+        </Box>
+        <EditDeletePostsButton
+          id={data.post.id}
+          authorId={data.post.author.id}
+        />
       </article>
     </Layout>
   );
