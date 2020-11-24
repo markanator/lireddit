@@ -82,4 +82,4 @@ const ChangePassword: NextPage<{}> = () => {
 };
 
 // supports ssr
-export default withUrqlClient(createUrqlClient, { ssr: false })(ChangePassword);
+export default withUrqlClient(createUrqlClient)(ChangePassword as any);
