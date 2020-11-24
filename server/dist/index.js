@@ -50,6 +50,7 @@ const hello_1 = require("./resolvers/hello");
 const post_1 = require("./resolvers/post");
 const user_1 = require("./resolvers/user");
 const path_1 = __importDefault(require("path"));
+const createUserLoader_1 = require("./utils/createUserLoader");
 const PORT = process.env.PORT || 7777;
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const conn = yield typeorm_1.createConnection({
@@ -98,7 +99,12 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
                 "request.credentials": "include",
             },
         },
-        context: ({ req, res }) => ({ req, res, redis }),
+        context: ({ req, res }) => ({
+            req,
+            res,
+            redis,
+            userLoader: createUserLoader_1.createUserLoader(),
+        }),
     });
     apolloServer.applyMiddleware({ app, cors: false });
     app.listen(PORT, () => {

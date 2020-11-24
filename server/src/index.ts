@@ -18,6 +18,7 @@ import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import path from "path";
+import { createUserLoader } from "./utils/createUserLoader";
 
 const PORT = process.env.PORT || 7777;
 
@@ -86,7 +87,12 @@ const main = async () => {
       },
     },
     // destructure access to have req,res
-    context: ({ req, res }) => ({ req, res, redis }),
+    context: ({ req, res }) => ({
+      req,
+      res,
+      redis,
+      userLoader: createUserLoader(),
+    }),
   });
 
   apolloServer.applyMiddleware({ app, cors: false });

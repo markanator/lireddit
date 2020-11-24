@@ -18,6 +18,7 @@ import { getConnection } from "typeorm";
 import { Post } from "../entities/Post";
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "../types";
+import { User } from "../entities/User";
 
 @InputType()
 class PostInput {
@@ -42,6 +43,13 @@ export class PostResolver {
   @FieldResolver(() => String)
   textSnippet(@Root() root: Post) {
     return root.text.slice(0, 50);
+  }
+  // get author for a post
+  @FieldResolver(() => User)
+  author(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
+    // will batch all users into a single call
+    // and return them
+    return userLoader.load(post.authorId);
   }
 
   // return list of Posts
@@ -71,11 +79,6 @@ export class PostResolver {
     const posts = await getConnection().query(
       `
       select p.*,
-      json_build_object(
-        'id', u.id,
-        'username', u.username,
-        'email', u.email
-        ) author,
         ${
           req.session.userId
             ? '(select value from upvote where "userId" = $2 and "postId" = p.id) "voteStatus"'
@@ -83,7 +86,6 @@ export class PostResolver {
         }
 
       from post p
-      inner join public.user u on u.id = p."authorId"
       ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
       order by p."createdAt" DESC
       limit $1
@@ -99,7 +101,7 @@ export class PostResolver {
 
   @Query(() => Post, { nullable: true }) // type-gql reference
   post(@Arg("id", () => Int) id: number): Promise<Post | undefined> {
-    return Post.findOne(id, { relations: ["author"] });
+    return Post.findOne(id);
   }
 
   @Mutation(() => Post) //type-gql reference
