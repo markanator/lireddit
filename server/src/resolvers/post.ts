@@ -46,10 +46,29 @@ export class PostResolver {
   }
   // get author for a post
   @FieldResolver(() => User)
-  author(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
+  async author(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
     // will batch all users into a single call
     // and return them
     return userLoader.load(post.authorId);
+  }
+  // get author for a post
+  @FieldResolver(() => Int, { nullable: true })
+  async voteStatus(
+    @Root() post: Post,
+    @Ctx() { upvoteLoader, req }: MyContext
+  ) {
+    if (!req.session.userId) {
+      return null;
+    }
+
+    // will batch all users into a single call
+    // and return them
+    const vote = await upvoteLoader.load({
+      postId: post.id,
+      userId: parseInt(req.session.id),
+    });
+
+    return vote ? vote.value : null;
   }
 
   // return list of Posts
@@ -66,29 +85,17 @@ export class PostResolver {
     // for SQL Query below
     const sqlReplacement: any[] = [realLimitPlusOne];
 
-    if (req.session.userId) {
-      sqlReplacement.push(req.session.userId);
-    }
-
-    let cursorIndex = 3;
     if (cursor) {
       sqlReplacement.push(new Date(parseInt(cursor)));
-      cursorIndex = sqlReplacement.length;
     }
     // write a join => big query that returns joined data
     const posts = await getConnection().query(
       `
-      select p.*,
-        ${
-          req.session.userId
-            ? '(select value from upvote where "userId" = $2 and "postId" = p.id) "voteStatus"'
-            : 'null as "voteStatus"'
-        }
-
-      from post p
-      ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
-      order by p."createdAt" DESC
-      limit $1
+        select p.*
+        from post p
+        ${cursor ? `where p."createdAt" < $2` : ""}
+        order by p."createdAt" DESC
+        limit $1
       `,
       sqlReplacement
     );

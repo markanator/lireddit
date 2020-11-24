@@ -13,7 +13,7 @@ import {
   VoteMutationVariables,
   DeletePostMutationVariables,
 } from "../generated/graphql";
-import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
+import { cacheExchange, Resolver, Cache } from "@urql/exchange-graphcache";
 import { pipe, tap } from "wonka";
 import gql from "graphql-tag";
 import Router from "next/router";
@@ -36,8 +36,8 @@ const errorExchange: Exchange = ({ forward }) => (ops$) => {
 const cursorPagination = (): Resolver => {
   return (_, fieldArgs, cache, info) => {
     const { parentKey: entityKey, fieldName } = info;
-    const allFields = cache.inspectFields(entityKey); // returns an array of queries
-    const fieldInfos = allFields.filter((info) => info.fieldName === fieldName); // filter what we dont want
+    const allFields = cache.inspectFields(entityKey);
+    const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
     const size = fieldInfos.length;
     if (size === 0) {
       return undefined;
@@ -52,21 +52,17 @@ const cursorPagination = (): Resolver => {
     // if posts are not in cache setPartials ✔
     info.partial = !isInCache; // will return bool
 
-    let hasMore: boolean = true;
+    let hasMore = true;
     const results: string[] = [];
     // combining fresh posts with cache
+    // will iterate through and read data from cache
     fieldInfos.forEach((info) => {
-      // will iterate through and read data from cache
-      const key = cache.resolveFieldByKey(entityKey, info.fieldKey) as string; // cache key
-      const data = cache.resolve(key, "posts") as string[]; // cache array data
-      const _hasMore = cache.resolve(key, "hasMore"); // cached bool for more content
-
+      const key = cache.resolveFieldByKey(entityKey, info.fieldKey) as string;
+      const data = cache.resolve(key, "posts") as string[];
+      const _hasMore = cache.resolve(key, "hasMore");
       if (!_hasMore) {
-        // no more? set to FALSE!
         hasMore = _hasMore as boolean;
       }
-
-      // pagination from first...n page => one long cached content array
       results.push(...data);
     });
 
@@ -77,6 +73,15 @@ const cursorPagination = (): Resolver => {
     };
   };
 };
+
+function invalidateAllPosts(cache: Cache) {
+  const allFields = cache.inspectFields("Query");
+  const fieldInfos = allFields.filter((info) => info.fieldName === "posts"); // filter what we want
+
+  fieldInfos.forEach((fi) => {
+    cache.invalidate("Query", "posts", fi.arguments || {});
+  });
+}
 
 export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   let cookie = "";
@@ -108,13 +113,13 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
         },
         updates: {
           Mutation: {
-            deletePost: (_result, args, cache, ____) => {
+            deletePost: (_result, args, cache, _info) => {
               cache.invalidate({
                 __typename: "Post",
                 id: (args as DeletePostMutationVariables).id,
               });
             },
-            vote: (_result, args, cache, ____) => {
+            vote: (_result, args, cache, _info) => {
               const { postId, value } = args as VoteMutationVariables;
               const data = cache.readFragment(
                 gql`
@@ -129,7 +134,6 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
 
               if (data) {
                 if (data.voteStatus === value) {
-                  // same value => already voted, skip
                   return;
                 }
                 const newPoints =
@@ -137,7 +141,6 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                 cache.writeFragment(
                   gql`
                     fragment __ on Post {
-                      id
                       points
                       voteStatus
                     }
@@ -150,14 +153,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
               // this function will add the post just created to an array
               // iterate through the cache and invalidate each item
               // which will cause a fetch
-              const allFields = cache.inspectFields("Query"); // returns an array of queries
-              const fieldInfos = allFields.filter(
-                (info) => info.fieldName === "posts"
-              ); // filter what we want
-
-              fieldInfos.forEach((fi) => {
-                cache.invalidate("Query", "posts", fi.arguments || {});
-              });
+              invalidateAllPosts(cache);
             },
             logout: (_result, __, cache, ____) => {
               betterUpdateQuery<LogoutMutation, MeQuery>(
@@ -167,14 +163,12 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                 () => ({ me: null })
               );
             },
-            login: (_result, _, cache, __) => {
-              // cache.updateQuery({ query: MeDocument }, (data) => {});
+            login: (_result, _args, cache, _info) => {
               betterUpdateQuery<LoginMutation, MeQuery>(
                 cache,
                 { query: MeDocument },
                 _result,
                 (result, query) => {
-                  // result func
                   if (result.login.errors) {
                     return query;
                   } else {
@@ -184,6 +178,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                   }
                 }
               );
+              invalidateAllPosts(cache);
             },
             register: (_result, _, cache, __) => {
               // cache.updateQuery({ query: MeDocument }, (data) => {});

@@ -59,31 +59,36 @@ let PostResolver = class PostResolver {
         return root.text.slice(0, 50);
     }
     author(post, { userLoader }) {
-        return userLoader.load(post.authorId);
+        return __awaiter(this, void 0, void 0, function* () {
+            return userLoader.load(post.authorId);
+        });
+    }
+    voteStatus(post, { upvoteLoader, req }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!req.session.userId) {
+                return null;
+            }
+            const vote = yield upvoteLoader.load({
+                postId: post.id,
+                userId: parseInt(req.session.id),
+            });
+            return vote ? vote.value : null;
+        });
     }
     posts(limit, cursor, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
             const realLimit = Math.min(50, limit);
             const realLimitPlusOne = realLimit + 1;
             const sqlReplacement = [realLimitPlusOne];
-            if (req.session.userId) {
-                sqlReplacement.push(req.session.userId);
-            }
-            let cursorIndex = 3;
             if (cursor) {
                 sqlReplacement.push(new Date(parseInt(cursor)));
-                cursorIndex = sqlReplacement.length;
             }
             const posts = yield typeorm_1.getConnection().query(`
-      select p.*,
-        ${req.session.userId
-                ? '(select value from upvote where "userId" = $2 and "postId" = p.id) "voteStatus"'
-                : 'null as "voteStatus"'}
-
-      from post p
-      ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
-      order by p."createdAt" DESC
-      limit $1
+        select p.*
+        from post p
+        ${cursor ? `where p."createdAt" < $2` : ""}
+        order by p."createdAt" DESC
+        limit $1
       `, sqlReplacement);
             return {
                 posts: posts.slice(0, realLimit),
@@ -169,8 +174,16 @@ __decorate([
     __param(0, type_graphql_1.Root()), __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Post_1.Post, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "author", null);
+__decorate([
+    type_graphql_1.FieldResolver(() => type_graphql_1.Int, { nullable: true }),
+    __param(0, type_graphql_1.Root()),
+    __param(1, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Post_1.Post, Object]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "voteStatus", null);
 __decorate([
     type_graphql_1.Query(() => PaginatedPosts),
     __param(0, type_graphql_1.Arg("limit", () => type_graphql_1.Int)),
