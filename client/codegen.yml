@@ -1,9 +1,9 @@
 overwrite: true
-schema: "http://localhost:7777/graphql"
+schema: "http://localhost:7799/graphql"
 documents: "src/graphql/**/*.graphql"
 generates:
   src/generated/graphql.tsx:
     plugins:
       - "typescript"
       - "typescript-operations"
-      - "typescript-urql"
+      - "typescript-react-apollo"

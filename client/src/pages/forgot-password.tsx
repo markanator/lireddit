@@ -1,16 +1,14 @@
 import { Box, Button } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
-import { withUrqlClient } from "next-urql";
 import React from "react";
 // locals
 import InputField from "../components/InputField";
 import Wrapper from "../components/Wrapper";
-import { createUrqlClient } from "../utils/createUrqlClient";
 import { useForgotPasswordMutation } from "../generated/graphql";
 
 const forgotPssword: React.FC<{}> = ({}) => {
   const [complete, setComeplete] = React.useState(false);
-  const [, forgotPassword] = useForgotPasswordMutation();
+  const [forgotPassword] = useForgotPasswordMutation();
 
   return (
     <Wrapper variant="small">
@@ -20,7 +18,7 @@ const forgotPssword: React.FC<{}> = ({}) => {
         }}
         onSubmit={async (values) => {
           // value keys are exact to graphql stuff
-          await forgotPassword(values);
+          await forgotPassword({ variables: values });
           setComeplete(true);
         }}
       >
@@ -55,4 +53,4 @@ const forgotPssword: React.FC<{}> = ({}) => {
 };
 
 // adds graphql support + SSR only for SEO
-export default withUrqlClient(createUrqlClient)(forgotPssword);
+export default forgotPssword;

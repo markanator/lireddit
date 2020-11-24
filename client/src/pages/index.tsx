@@ -1,4 +1,3 @@
-import { withUrqlClient } from "next-urql";
 import React, { useState } from "react";
 import Layout from "../components/Layout";
 import NextLink from "next/link";
@@ -13,18 +12,18 @@ import {
 } from "@chakra-ui/react";
 // locals
 import { usePostsQuery } from "../generated/graphql";
-import { createUrqlClient } from "../utils/createUrqlClient";
 import UpvoteSection from "../components/UpvoteSection";
 import EditDeletePostsButton from "../components/EditDeletePostsButton";
 
 const Index = () => {
-  const [variables, setVariables] = useState({
-    limit: 15,
-    cursor: null as null | string,
+  const { data, error, loading, fetchMore, variables } = usePostsQuery({
+    variables: {
+      limit: 15,
+      cursor: null,
+    },
   });
-  const [{ data, error, fetching }] = usePostsQuery({ variables });
 
-  if (!fetching && !data) {
+  if (!loading && !data) {
     return (
       <div>
         <Heading fontSize="lg">Query Failed.</Heading>
@@ -39,7 +38,7 @@ const Index = () => {
         <Heading>Fresh Posts</Heading>
       </Flex>
       <br />
-      {!data && fetching ? (
+      {!data && loading ? (
         <div className="">Loading...</div>
       ) : (
         <Stack spacing={8}>
@@ -75,12 +74,25 @@ const Index = () => {
       {data && data.posts.hasMore ? (
         <Flex my={8}>
           <Button
-            isLoading={fetching}
+            isLoading={loading}
             m="auto"
             onClick={() => {
-              setVariables({
-                limit: variables.limit,
-                cursor: data.posts.posts[data.posts.posts.length - 1].createdAt,
+              // apollo pagination
+              fetchMore({
+                variables: {
+                  limit: variables?.limit,
+                  cursor:
+                    data.posts.posts[data.posts.posts.length - 1].createdAt,
+                },
+                updateQuery: (previousValue, { fetchMoreResult }) => {
+                  if (!fetchMoreResult) {
+                    return previousValue;
+                  }
+
+                  return {
+                    // TODO
+                  };
+                },
               });
             }}
           >
@@ -93,4 +105,4 @@ const Index = () => {
 };
 
 // supports ssr
-export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
+export default Index;

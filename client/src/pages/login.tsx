@@ -8,15 +8,13 @@ import InputField from "../components/InputField";
 import { Box, Button, Flex, Link } from "@chakra-ui/react";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useLoginMutation } from "../generated/graphql";
-import { withUrqlClient } from "next-urql";
-import { createUrqlClient } from "../utils/createUrqlClient";
 
 // interface registerProps {}
 
 const Login: React.FC<{}> = ({}) => {
   const router = useRouter();
   // GQL hook
-  const [, login] = useLoginMutation();
+  const [login] = useLoginMutation();
 
   return (
     <Wrapper variant="small">
@@ -27,7 +25,7 @@ const Login: React.FC<{}> = ({}) => {
         }}
         onSubmit={async (values, { setErrors }) => {
           // value keys are exact to graphql stuff
-          const res = await login(values);
+          const res = await login({ variables: values });
           // render errors
           if (res.data?.login.errors) {
             setErrors(toErrorMap(res.data.login.errors));
@@ -79,4 +77,4 @@ const Login: React.FC<{}> = ({}) => {
 };
 
 // adds graphql support + SSR only for SEO
-export default withUrqlClient(createUrqlClient)(Login);
+export default Login;

@@ -3,18 +3,16 @@ import { Formik, Form } from "formik";
 import { NextPage } from "next";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
-import { withUrqlClient } from "next-urql";
 // locals
 import InputField from "../../components/InputField";
 import Wrapper from "../../components/Wrapper";
 import { toErrorMap } from "../../utils/toErrorMap";
 import { useChangePasswordMutation } from "../../generated/graphql";
-import { createUrqlClient } from "../../utils/createUrqlClient";
 import NextLink from "next/link";
 
 const ChangePassword: NextPage<{}> = () => {
   const router = useRouter();
-  const [, changePassword] = useChangePasswordMutation();
+  const [changePassword] = useChangePasswordMutation();
   const [tokenError, setTokenError] = useState<string>("");
 
   return (
@@ -25,9 +23,13 @@ const ChangePassword: NextPage<{}> = () => {
         }}
         onSubmit={async (values, { setErrors }) => {
           const res = await changePassword({
-            newPassword: values.newPassword,
-            token:
-              typeof router.query.token === "string" ? router.query.token : "",
+            variables: {
+              newPassword: values.newPassword,
+              token:
+                typeof router.query.token === "string"
+                  ? router.query.token
+                  : "",
+            },
           });
           // error checking
           if (res.data?.changePassword.errors) {
@@ -82,4 +84,4 @@ const ChangePassword: NextPage<{}> = () => {
 };
 
 // supports ssr
-export default withUrqlClient(createUrqlClient)(ChangePassword as any);
+export default ChangePassword;

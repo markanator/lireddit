@@ -7,15 +7,13 @@ import InputField from "../components/InputField";
 import { Box, Button } from "@chakra-ui/react";
 import { useRegisterMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
-import { withUrqlClient } from "next-urql";
-import { createUrqlClient } from "../utils/createUrqlClient";
 
 interface registerProps {}
 
 const register: React.FC<registerProps> = ({}) => {
   const router = useRouter();
   // URQL hook
-  const [, register] = useRegisterMutation();
+  const [register] = useRegisterMutation();
 
   return (
     <Wrapper variant="small">
@@ -27,7 +25,7 @@ const register: React.FC<registerProps> = ({}) => {
         }}
         onSubmit={async (values, { setErrors }) => {
           // value keys are exact to graphql stuff
-          const res = await register({ options: values });
+          const res = await register({ variables: { options: values } });
           // render errors
           if (res.data?.register.errors) {
             setErrors(toErrorMap(res.data.register.errors));
@@ -79,4 +77,4 @@ const register: React.FC<registerProps> = ({}) => {
 };
 
 // supports ssr
-export default withUrqlClient(createUrqlClient)(register);
+export default register;
