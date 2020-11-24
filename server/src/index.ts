@@ -1,6 +1,7 @@
 import "reflect-metadata";
-import * as dotenv from "dotenv";
-dotenv.config();
+// import * as dotenv from "dotenv";
+// dotenv.config();
+import "dotenv-safe/config";
 import { ApolloServer } from "apollo-server-express";
 import connectRedis from "connect-redis";
 import cors from "cors";
@@ -21,7 +22,7 @@ import path from "path";
 import { createUserLoader } from "./utils/createUserLoader";
 import { createUpvoteLoader } from "./utils/createUpvoteLoader";
 
-const PORT = process.env.PORT || 7777;
+const PORT = parseInt(process.env.PORT) || 7777;
 
 const main = async () => {
   // setup ORM
@@ -29,16 +30,14 @@ const main = async () => {
   const conn = await createConnection({
     type: "postgres",
     port: parseInt(process.env.DB_PORT as string),
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    url: process.env.DB_URI,
     entities: [User, Post, Upvote],
     logging: true,
-    synchronize: true,
+    // synchronize: true, // don't run on production
     migrations: [path.join(__dirname, "./migrations/*")],
   });
 
-  console.log("### Connected!");
+  // console.log("### Connected!");
 
   await conn.runMigrations(); // run migrations
 
@@ -47,12 +46,12 @@ const main = async () => {
 
   // redis stuff
   const RedisStore = connectRedis(session);
-  const redis = new Redis();
-
+  const redis = new Redis(process.env.REDIS_URL);
+  app.set("proxy", 1);
   // cors fix
   app.use(
     cors({
-      origin: "http://localhost:3000",
+      origin: process.env.FRONT_END_URL,
       credentials: true,
     })
   );
@@ -70,9 +69,10 @@ const main = async () => {
         httpOnly: true, // non secure for dev
         sameSite: "lax", // csrf protections
         secure: __prod__, //cookie only works in https
+        domain: __prod__ ? ".codeponder.com" : undefined, // don't need?
       },
       saveUninitialized: false, // create sesh by default regardless of !data
-      secret: process.env.COOKIE_SECRET as string,
+      secret: process.env.COOKIE_SECRET,
       resave: false,
     })
   );

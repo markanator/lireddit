@@ -8,10 +8,13 @@ COPY package.json ./
 COPY yarn.lock ./
 
 RUN yarn
-RUN yarn build
 
 # Bundle app source
 COPY . .
+# set to production
+COPY .env.production .env
+
+RUN yarn build
 
 # ENV Vars
 ENV NODE_ENV production

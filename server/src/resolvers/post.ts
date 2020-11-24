@@ -75,8 +75,7 @@ export class PostResolver {
   @Query(() => PaginatedPosts) // gql type
   async posts(
     @Arg("limit", () => Int) limit: number,
-    @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
-    @Ctx() { req }: MyContext
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null
   ): Promise<PaginatedPosts> {
     // TS type here
     const realLimit = Math.min(50, limit);
