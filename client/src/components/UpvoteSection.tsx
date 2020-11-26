@@ -13,7 +13,7 @@ const UpvoteSection: React.FC<UpvoteSectionProps> = ({ post }) => {
   const [voteLoading, setVoteLoading] = useState<"uload" | "dload" | "noLoad">(
     "noLoad"
   );
-  const [, vote] = useVoteMutation();
+  const [vote] = useVoteMutation();
   return (
     <Flex direction="column" alignItems="center" mr={4}>
       <IconButton
@@ -23,8 +23,10 @@ const UpvoteSection: React.FC<UpvoteSectionProps> = ({ post }) => {
           }
           setVoteLoading("uload");
           await vote({
-            postId: post.id,
-            value: 1,
+            variables: {
+              postId: post.id,
+              value: 1,
+            },
           });
           setVoteLoading("noLoad");
         }}
@@ -43,8 +45,10 @@ const UpvoteSection: React.FC<UpvoteSectionProps> = ({ post }) => {
           }
           setVoteLoading("dload");
           await vote({
-            postId: post.id,
-            value: -1,
+            variables: {
+              postId: post.id,
+              value: -1,
+            },
           });
           setVoteLoading("noLoad");
         }}
