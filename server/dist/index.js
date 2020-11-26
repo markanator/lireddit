@@ -32,7 +32,7 @@ const user_1 = require("./resolvers/user");
 const path_1 = __importDefault(require("path"));
 const createUserLoader_1 = require("./utils/createUserLoader");
 const createUpvoteLoader_1 = require("./utils/createUpvoteLoader");
-const PORT = parseInt(process.env.PORT) || 7777;
+const PORT = parseInt(process.env.PORT) || 8080;
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const conn = yield typeorm_1.createConnection({
         type: "postgres",
@@ -61,6 +61,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             httpOnly: true,
             sameSite: "lax",
             secure: constants_1.__prod__,
+            domain: constants_1.__prod__ ? ".ambrocio.dev" : undefined,
         },
         saveUninitialized: false,
         secret: process.env.SESSION_SECRET,

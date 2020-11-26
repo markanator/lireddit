@@ -22,7 +22,7 @@ import path from "path";
 import { createUserLoader } from "./utils/createUserLoader";
 import { createUpvoteLoader } from "./utils/createUpvoteLoader";
 
-const PORT = parseInt(process.env.PORT) || 7777;
+const PORT = parseInt(process.env.PORT) || 8080;
 
 const main = async () => {
   // setup ORM
@@ -68,7 +68,7 @@ const main = async () => {
         httpOnly: true, // non secure for dev
         sameSite: "lax", // csrf protections
         secure: __prod__, //cookie only works in https
-        // domain: __prod__ ? ".codeponder.com" : undefined, // don't need?
+        domain: __prod__ ? ".ambrocio.dev" : undefined, // don't need?
       },
       saveUninitialized: false, // create sesh by default regardless of !data
       secret: process.env.SESSION_SECRET as string,
