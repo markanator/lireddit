@@ -71,7 +71,7 @@ const main = async () => {
         // domain: __prod__ ? ".codeponder.com" : undefined, // don't need?
       },
       saveUninitialized: false, // create sesh by default regardless of !data
-      secret: process.env.SESSION_SECRET,
+      secret: process.env.SESSION_SECRET as string,
       resave: false,
     })
   );
