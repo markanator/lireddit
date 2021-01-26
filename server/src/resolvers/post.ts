@@ -65,7 +65,7 @@ export class PostResolver {
     // and return them
     const vote = await upvoteLoader.load({
       postId: post.id,
-      userId: parseInt(req.session.id),
+      userId: req.session.userId,
     });
 
     return vote ? vote.value : null;

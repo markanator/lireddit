@@ -156,7 +156,17 @@ let UserResolver = class UserResolver {
                 user = res.raw[0];
             }
             catch (err) {
-                if (err.code === "23505" || err.detail.includes("already exists")) {
+                if (err.detail.includes("email")) {
+                    return {
+                        errors: [
+                            {
+                                field: "email",
+                                message: "Email is already taken",
+                            },
+                        ],
+                    };
+                }
+                else if (err.detail.includes("username")) {
                     return {
                         errors: [
                             {

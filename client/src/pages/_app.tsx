@@ -1,16 +1,14 @@
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
-import { ThemeProvider, CSSReset, ColorModeProvider } from "@chakra-ui/react";
+import { ApolloProvider } from "@apollo/client";
+import { ColorModeProvider, CSSReset, ThemeProvider } from "@chakra-ui/react";
+import { AppProps } from "next/dist/next-server/lib/router/router";
 import theme from "../theme";
+import { useApollo } from "../utils/apolloClient";
 
-const client = new ApolloClient({
-  uri: process.env.NEXT_PUBLIC_API_URL as string,
-  credentials: "include",
-  cache: new InMemoryCache(),
-});
+function MyApp({ Component, pageProps }: AppProps) {
+  const apolloClient = useApollo(pageProps);
 
-function MyApp({ Component, pageProps }: any) {
   return (
-    <ApolloProvider client={client}>
+    <ApolloProvider client={apolloClient}>
       <ThemeProvider theme={theme}>
         <ColorModeProvider
           options={{

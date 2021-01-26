@@ -3,7 +3,7 @@ import { BaseEntity, Column, Entity, ManyToOne, PrimaryColumn } from "typeorm";
 import { Post } from "./Post";
 import { User } from "./User";
 
-@Entity() // typeORM
+@Entity()
 export class Upvote extends BaseEntity {
   @Column({ type: "int" })
   value: number;
@@ -11,16 +11,14 @@ export class Upvote extends BaseEntity {
   @PrimaryColumn()
   userId: number;
 
-  // owner column
-  @ManyToOne(() => User, (user) => user.upvotes) //relationships
+  @ManyToOne(() => User, (user) => user.upvotes)
   user: User;
 
   @PrimaryColumn()
   postId: number;
 
-  // owner column
   @ManyToOne(() => Post, (post) => post.upvotes, {
     onDelete: "CASCADE",
-  }) //relationships
+  })
   post: Post;
 }

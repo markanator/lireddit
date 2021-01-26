@@ -22,7 +22,12 @@ const createPost: React.FC<{}> = ({}) => {
         }}
         onSubmit={async (values) => {
           // post content
-          const { errors } = await createPost({ variables: { input: values } });
+          const { errors } = await createPost({
+            variables: { input: values },
+            update: (cache) => {
+              cache.evict({ fieldName: "posts:{}" });
+            },
+          });
           // render errors
           if (!errors) {
             router.push("/");
@@ -31,7 +36,12 @@ const createPost: React.FC<{}> = ({}) => {
         }}
       >
         {({ isSubmitting }) => (
-          <Form>
+          <Form
+            style={{
+              paddingTop: "6rem",
+              paddingBottom: "6rem",
+            }}
+          >
             <InputField
               label="Enter Post Title"
               name="title"

@@ -17,17 +17,20 @@ import { useApolloClient } from "@apollo/client";
 
 interface NavbarProps {}
 
-const Navbar: React.FC<NavbarProps> = ({}) => {
+const Navbar: React.FC<NavbarProps> = () => {
   // const router = useRouter();
   const [logout, { loading: logoutFetching }] = useLogoutMutation();
   const apolloClient = useApolloClient();
   const { colorMode } = useColorMode();
   const { data, loading } = useMeQuery({
     skip: isServer(),
+    fetchPolicy: "cache-and-network",
   });
   let body = null;
   // dark mode stuff
   const bgColor = { light: "tan", dark: "gray.700" };
+
+  console.log("me data", data);
 
   // loading
   if (loading) {

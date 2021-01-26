@@ -11,15 +11,15 @@ import {
   Text,
 } from "@chakra-ui/react";
 // locals
-import { usePostsQuery } from "../generated/graphql";
+// import { usePostsQuery } from "../generated/graphql";
 import UpvoteSection from "../components/UpvoteSection";
 import EditDeletePostsButton from "../components/EditDeletePostsButton";
+import { usePostsQuery } from "../generated/graphql";
 
 const Index = () => {
   const { data, error, loading, fetchMore, variables } = usePostsQuery({
     variables: {
       limit: 15,
-      cursor: null,
     },
   });
 

@@ -70,7 +70,7 @@ let PostResolver = class PostResolver {
             }
             const vote = yield upvoteLoader.load({
                 postId: post.id,
-                userId: parseInt(req.session.id),
+                userId: req.session.userId,
             });
             return vote ? vote.value : null;
         });
