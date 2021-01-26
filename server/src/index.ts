@@ -47,7 +47,7 @@ const main = async () => {
   // redis stuff
   const RedisStore = connectRedis(session);
   const redis = new Redis(process.env.REDIS_URL);
-  app.set("trust proxy", true);
+  app.set("trust proxy", 1);
   // cors fix
   app.use(
     cors({
