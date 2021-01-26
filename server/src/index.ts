@@ -69,7 +69,7 @@ const main = async () => {
         httpOnly: true, // non secure for dev
         sameSite: "lax", // csrf protections
         secure: __prod__, //cookie only works in https
-        domain: __prod__ ? ".herokuapp.app" : undefined, // don't need?
+        domain: __prod__ ? ".vercel.app" : undefined, // don't need?
       },
       saveUninitialized: false, // create sesh by default regardless of !data
       secret: process.env.SESSION_SECRET as string,
