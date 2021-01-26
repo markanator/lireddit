@@ -32,7 +32,7 @@ const main = async () => {
     url: process.env.DATABASE_URL,
     entities: [User, Post, Upvote],
     logging: true,
-    ssl: __prod__,
+    ssl: __prod__ ? { rejectUnauthorized: false } : false,
     // synchronize: true, // don't run on production
     migrations: [path.join(__dirname, "./migrations/*")],
   });
@@ -69,7 +69,7 @@ const main = async () => {
         httpOnly: true, // non secure for dev
         sameSite: "lax", // csrf protections
         secure: __prod__, //cookie only works in https
-        domain: __prod__ ? ".herokuapp.com" : undefined, // don't need?
+        domain: __prod__ ? ".herokuapp.app" : undefined, // don't need?
       },
       saveUninitialized: false, // create sesh by default regardless of !data
       secret: process.env.SESSION_SECRET as string,
