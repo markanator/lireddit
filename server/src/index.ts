@@ -32,6 +32,7 @@ const main = async () => {
     url: process.env.DATABASE_URL,
     entities: [User, Post, Upvote],
     logging: true,
+    ssl: __prod__,
     // synchronize: true, // don't run on production
     migrations: [path.join(__dirname, "./migrations/*")],
   });
