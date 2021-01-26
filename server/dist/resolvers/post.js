@@ -130,6 +130,9 @@ let PostResolver = class PostResolver {
             const isUpvote = value !== -1;
             const realValue = isUpvote ? 1 : -1;
             const { userId } = req.session;
+            if (!userId) {
+                return false;
+            }
             const upvote = yield Upvote_1.Upvote.findOne({ where: { postId, userId } });
             if (upvote && upvote.value !== realValue) {
                 yield typeorm_1.getConnection().transaction((tm) => __awaiter(this, void 0, void 0, function* () {

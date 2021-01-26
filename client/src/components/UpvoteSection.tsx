@@ -1,5 +1,6 @@
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { Text, Flex, IconButton } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { PostSnippetFragment, useVoteMutation } from "../generated/graphql";
 
@@ -10,6 +11,7 @@ interface UpvoteSectionProps {
 }
 
 const UpvoteSection: React.FC<UpvoteSectionProps> = ({ post }) => {
+  const router = useRouter();
   const [voteLoading, setVoteLoading] = useState<"uload" | "dload" | "noLoad">(
     "noLoad"
   );
@@ -22,13 +24,19 @@ const UpvoteSection: React.FC<UpvoteSectionProps> = ({ post }) => {
             return;
           }
           setVoteLoading("uload");
-          await vote({
+          const { data } = await vote({
             variables: {
               postId: post.id,
               value: 1,
             },
           });
-          setVoteLoading("noLoad");
+
+          if (data?.vote === false) {
+            setVoteLoading("noLoad");
+            router.push("/login");
+          } else {
+            setVoteLoading("noLoad");
+          }
         }}
         colorScheme={post.voteStatus === 1 ? "green" : undefined}
         isLoading={voteLoading === "uload"}

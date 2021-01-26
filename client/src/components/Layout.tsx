@@ -12,7 +12,7 @@ const Layout: React.FC<LayoutProps> = ({ variant, children }) => {
   const bgColor = { light: "gray.50", dark: "gray.900" };
   const color = { light: "black", dark: "white" };
   return (
-    <Box bg={bgColor[colorMode]} color={color[colorMode]} h="full">
+    <Box bg={bgColor[colorMode]} color={color[colorMode]} h="100vh">
       <Navbar />
       <Wrapper variant={variant}>{children}</Wrapper>
     </Box>

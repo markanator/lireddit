@@ -4,7 +4,8 @@ import { useRouter } from "next/router";
 // locals
 import Wrapper from "../components/Wrapper";
 import InputField from "../components/InputField";
-import { Box, Button } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Link } from "@chakra-ui/react";
+import NextLink from "next/link";
 import { useRegisterMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 
@@ -17,6 +18,7 @@ const register: React.FC<registerProps> = ({}) => {
 
   return (
     <Wrapper variant="small">
+      <Heading mb={8}>Register</Heading>
       <Formik
         initialValues={{
           email: "",
@@ -61,14 +63,26 @@ const register: React.FC<registerProps> = ({}) => {
                 textarea={false}
               />
             </Box>
-            <Button
-              type="submit"
-              colorScheme="teal"
-              mt={4}
-              isLoading={isSubmitting}
+            <Flex
+              mt={8}
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
             >
-              Register
-            </Button>
+              <Button type="submit" colorScheme="teal" isLoading={isSubmitting}>
+                Register
+              </Button>
+              <NextLink href="/">
+                <Button colorScheme="gray" variant="ghost">
+                  Cancel
+                </Button>
+              </NextLink>
+              <NextLink href="/login">
+                <Button colorScheme="gray" variant="outline">
+                  Login
+                </Button>
+              </NextLink>
+            </Flex>
           </Form>
         )}
       </Formik>

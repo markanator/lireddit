@@ -180,6 +180,10 @@ export class PostResolver {
     const realValue = isUpvote ? 1 : -1;
     const { userId } = req.session;
 
+    if (!userId) {
+      return false;
+    }
+
     // fetch previous
     const upvote = await Upvote.findOne({ where: { postId, userId } });
 
