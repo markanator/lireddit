@@ -46,7 +46,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = express_1.default();
     const RedisStore = connect_redis_1.default(express_session_1.default);
     const redis = new ioredis_1.default(process.env.REDIS_URL);
-    app.set("trust proxy", 1);
+    app.set("trust proxy", true);
     app.use(cors_1.default({
         origin: process.env.CORS_ORIGIN,
         credentials: true,
@@ -59,10 +59,9 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         }),
         cookie: {
             maxAge: 1000 * 60 * 60 * 24 * 365 * 1,
-            httpOnly: !constants_1.__prod__,
+            httpOnly: true,
             sameSite: "lax",
             secure: constants_1.__prod__,
-            domain: constants_1.__prod__ ? ".vercel.app" : undefined,
         },
         saveUninitialized: false,
         secret: process.env.SESSION_SECRET,
@@ -73,11 +72,13 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             resolvers: [hello_1.HelloResolver, post_1.PostResolver, user_1.UserResolver],
             validate: false,
         }),
-        playground: {
-            settings: {
-                "request.credentials": "include",
+        playground: constants_1.__prod__
+            ? false
+            : {
+                settings: {
+                    "request.credentials": "include",
+                },
             },
-        },
         context: ({ req, res }) => ({
             req,
             res,

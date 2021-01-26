@@ -47,7 +47,7 @@ const main = async () => {
   // redis stuff
   const RedisStore = connectRedis(session);
   const redis = new Redis(process.env.REDIS_URL);
-  app.set("trust proxy", 1);
+  app.set("trust proxy", true);
   // cors fix
   app.use(
     cors({
@@ -66,10 +66,10 @@ const main = async () => {
       }),
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 1, // 1 yrs
-        httpOnly: !__prod__, // non secure for dev
+        httpOnly: true, // non secure for dev
         sameSite: "lax", // csrf protections
         secure: __prod__, //cookie only works in https
-        domain: __prod__ ? ".vercel.app" : undefined, // don't need?
+        // domain: __prod__ ? ".vercel.app" : undefined, // don't need?
       },
       saveUninitialized: false, // create sesh by default regardless of !data
       secret: process.env.SESSION_SECRET as string,
@@ -82,11 +82,13 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    playground: {
-      settings: {
-        "request.credentials": "include",
-      },
-    },
+    playground: __prod__
+      ? false
+      : {
+          settings: {
+            "request.credentials": "include",
+          },
+        },
     // destructure access to have req,res
     context: ({ req, res }) => ({
       req,
