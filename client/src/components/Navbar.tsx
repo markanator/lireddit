@@ -30,7 +30,7 @@ const Navbar: React.FC<NavbarProps> = () => {
   // dark mode stuff
   const bgColor = { light: "tan", dark: "gray.700" };
 
-  console.log("me data", data);
+  console.log("me data", { ...data?.me });
 
   // loading
   if (loading) {

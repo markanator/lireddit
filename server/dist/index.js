@@ -59,7 +59,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         }),
         cookie: {
             maxAge: 1000 * 60 * 60 * 24 * 365 * 1,
-            httpOnly: true,
+            httpOnly: !constants_1.__prod__,
             sameSite: "lax",
             secure: constants_1.__prod__,
             domain: constants_1.__prod__ ? ".vercel.app" : undefined,
