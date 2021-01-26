@@ -1,26 +1,26 @@
-import "reflect-metadata";
-// import * as dotenv from "dotenv";
-// dotenv.config();
-import "dotenv-safe/config";
 import { ApolloServer } from "apollo-server-express";
 import connectRedis from "connect-redis";
 import cors from "cors";
+// import * as dotenv from "dotenv";
+// dotenv.config();
+import "dotenv-safe/config";
 import express from "express";
 import session from "express-session";
 import Redis from "ioredis";
+import path from "path";
+import "reflect-metadata";
 import { buildSchema } from "type-graphql";
 import { createConnection } from "typeorm";
 // local imports
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { Post } from "./entities/Post";
-import { User } from "./entities/User";
 import { Upvote } from "./entities/Upvote";
+import { User } from "./entities/User";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-import path from "path";
-import { createUserLoader } from "./utils/createUserLoader";
 import { createUpvoteLoader } from "./utils/createUpvoteLoader";
+import { createUserLoader } from "./utils/createUserLoader";
 
 const PORT = parseInt(process.env.PORT) || 8080;
 
@@ -61,7 +61,7 @@ const main = async () => {
     session({
       name: COOKIE_NAME,
       store: new RedisStore({
-        client: redis,
+        client: (redis as unknown) as any,
         disableTouch: true,
       }),
       cookie: {

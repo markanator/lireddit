@@ -12,26 +12,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("reflect-metadata");
-require("dotenv-safe/config");
 const apollo_server_express_1 = require("apollo-server-express");
 const connect_redis_1 = __importDefault(require("connect-redis"));
 const cors_1 = __importDefault(require("cors"));
+require("dotenv-safe/config");
 const express_1 = __importDefault(require("express"));
 const express_session_1 = __importDefault(require("express-session"));
 const ioredis_1 = __importDefault(require("ioredis"));
+const path_1 = __importDefault(require("path"));
+require("reflect-metadata");
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 const constants_1 = require("./constants");
 const Post_1 = require("./entities/Post");
-const User_1 = require("./entities/User");
 const Upvote_1 = require("./entities/Upvote");
+const User_1 = require("./entities/User");
 const hello_1 = require("./resolvers/hello");
 const post_1 = require("./resolvers/post");
 const user_1 = require("./resolvers/user");
-const path_1 = __importDefault(require("path"));
-const createUserLoader_1 = require("./utils/createUserLoader");
 const createUpvoteLoader_1 = require("./utils/createUpvoteLoader");
+const createUserLoader_1 = require("./utils/createUserLoader");
 const PORT = parseInt(process.env.PORT) || 8080;
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const conn = yield typeorm_1.createConnection({

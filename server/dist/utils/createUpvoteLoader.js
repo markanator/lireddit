@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createUpvoteLoader = void 0;
 const dataloader_1 = __importDefault(require("dataloader"));
 const Upvote_1 = require("../entities/Upvote");
-exports.createUpvoteLoader = () => new dataloader_1.default((keys) => __awaiter(void 0, void 0, void 0, function* () {
+const createUpvoteLoader = () => new dataloader_1.default((keys) => __awaiter(void 0, void 0, void 0, function* () {
     const upvotes = yield Upvote_1.Upvote.findByIds(keys);
     const upvoteIdsToUpvote = {};
     upvotes.forEach((vote) => {
@@ -23,4 +23,5 @@ exports.createUpvoteLoader = () => new dataloader_1.default((keys) => __awaiter(
     });
     return keys.map((key) => upvoteIdsToUpvote[`${key.userId} | ${key.postId}`]);
 }));
+exports.createUpvoteLoader = createUpvoteLoader;
 //# sourceMappingURL=createUpvoteLoader.js.map
